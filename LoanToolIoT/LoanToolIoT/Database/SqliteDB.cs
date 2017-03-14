@@ -29,9 +29,10 @@ namespace LoanToolIoT.Database
             conn.CreateTable<LoanLog>();
             conn.CreateTable<DeviceHostList>();
             conn.CreateTable<DeviceLoan>();
+            conn.CreateTable<Settings>();
         }
 
-
+        #region Devices
         public IReadOnlyList<DeviceList> GetDevices()
         {
             return conn.Table<DeviceList>().ToList();
@@ -59,7 +60,8 @@ namespace LoanToolIoT.Database
                 return false;
             }
         }
-
+#endregion
+        #region Host functions
         public IReadOnlyList<DeviceHostList> GetHostLists()
         {
             return conn.Table<DeviceHostList>().ToList();
@@ -90,8 +92,9 @@ namespace LoanToolIoT.Database
         {
             conn.Delete<DeviceHostList>(id);
         }
+#endregion
 
-
+        #region Loan Functions
         public DeviceLoan GetLastLoanInfo(DeviceLoan Device)
         {
             return conn.Find<DeviceLoan>(x => x.Mac == Device.Mac && x.ExpireDate > Device.ExpireDate);
@@ -99,9 +102,13 @@ namespace LoanToolIoT.Database
 
         public DeviceLoan ValidLoanReturn(DeviceLoan Device)
         {
-            return conn.Table<DeviceLoan>().Where(x => x.Mac == Device.Mac && x.Email == Device.Email && x.GeneratedPassword == Device.GeneratedPassword).OrderByDescending(xx => xx.ID).First();
+            return conn.Table<DeviceLoan>().Where(x => x.Mac == Device.Mac && x.Email == Device.Email && x.GeneratedPassword == Device.GeneratedPassword).OrderByDescending(xx => xx.ID).FirstOrDefault();
         }
 
+        public IReadOnlyList<DeviceLoan> GetCurrentLoans()
+        {
+            return conn.Table<DeviceLoan>().Where(x => x.ExpireDate > 0 && x.Returned == false).ToList();
+        }
 
         public void SaveLoanInfo(DeviceLoan Device)
         {
@@ -117,7 +124,37 @@ namespace LoanToolIoT.Database
         {
             conn.DeleteAll<DeviceLoan>();
         }
+        #endregion
+        #region Settings
+        public Settings GetSetting(Settings Setting)
+        {
+            return conn.Table<Settings>().Where(x => x.Name == Setting.Name).FirstOrDefault();
+        }
 
+        public bool SaveSetting(Settings Setting)
+        {
+            var currentSetting = this.GetSetting(Setting);
+            if (currentSetting != null)
+            {
+                currentSetting.Value = Setting.Value;
+                var ret = conn.Update(currentSetting);
+                if (ret > 0)
+                    return true;
+                return false;
+            }
+            else
+            {
+                var ret = conn.Insert(Setting);
+                if (ret > 0)
+                    return true;
+                return false;
+            }
+        }
+        public void DeleteSetting(Settings Setting)
+        {
+            conn.Delete(Setting);
+        }
 
+#endregion
     }
 }

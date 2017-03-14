@@ -8,17 +8,31 @@ using LoanToolIoT.Model.Sql;
 using LoanToolIoT.Model.Web;
 using System.Linq;
 using LoanToolIoT.Model.Api;
+using System.Collections.Generic;
 
 namespace LoanToolIoT.Controllers
 {
     [RestController(InstanceCreationType.PerCall)]
-    public sealed class LoanController :  ApiController
+    public sealed class LoanController
     {
-        [UriFormat("/loan")]
-        public IPostResponse LoanCamera([FromContent]DeviceLoan Loan)
+        ApiController ApiController = new ApiController();
+        /// <summary>
+        /// Loan a camera through the API.
+        /// Requires: {"SerialNumber" :"", Email = "", Reason= "", LoanDays = ""}.
+        /// if successful, loans a camera for 7 days.
+        /// </summary>
+        /// <param name="Loan"></param>
+        /// <returns></returns>
+        [UriFormat("/loan/request")]
+        public IPostResponse LoanCamera([FromContent]LoanRequest LoanRequest)
         {
+            var Loan = new DeviceLoan { Mac = LoanRequest.SerialNumber, Email = LoanRequest.Email, LoanReason = LoanRequest.Reason };
+            if ((LoanRequest.LoanDays == 1 || LoanRequest.LoanDays == 7 || LoanRequest.LoanDays == 14) == false)
+            {
+                return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 4, Message = "Loan days can only be set to 1,7 or 14", Status = "Failed" });
+            }
             var db = new SqliteDB();
-            Loan.ExpireDate = DateTime.Now.Ticks;
+            Loan.ExpireDate = DateTime.Now.AddDays(LoanRequest.LoanDays).Ticks;
             var dbres = db.GetLastLoanInfo(Loan);
             if (dbres == null)
             {
@@ -43,16 +57,20 @@ namespace LoanToolIoT.Controllers
                 
 
                 
-                     if (!userres.Result)
-                     {
-                         return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 3, Message = "Failed to create username", Status = "Failed" });
-                     }
-                     var overlay = new AxisVapixLib.Overlay.Overlay(device);
-                     Task.Run(() => overlay.SetTextOverlayAsync(0, AxisVapixLib.Overlay.Overlay.TextOverlayBackgroundColor.White, false, false, AxisVapixLib.Overlay.Overlay.TextColor.Black, AxisVapixLib.Overlay.Overlay.TextOverlayPosition.Top, "Reserved to " + Loan.Email));
-                     Loan.ExpireDate = DateTime.Now.AddDays(7).Ticks;
-                     Loan.LoanDate = DateTime.Now.Ticks;
+                if (!userres.Result)
+                {
+                    return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 3, Message = "Failed to create username", Status = "Failed" });
+                }
+                var overlay = new AxisVapixLib.Overlay.Overlay(device);
+                Task.Run(() => overlay.SetTextOverlayAsync(0, AxisVapixLib.Overlay.Overlay.TextOverlayBackgroundColor.White, false, false, AxisVapixLib.Overlay.Overlay.TextColor.Black, AxisVapixLib.Overlay.Overlay.TextOverlayPosition.Top, "Reserved to " + Loan.Email));
+                 
+                Loan.LoanDate = DateTime.Now.Ticks;
 
-                     db.SaveLoanInfo(Loan);
+                db.SaveLoanInfo(Loan);
+
+                EmailController e = new EmailController();
+                Task.Run(async () => await e.SendEmail(Loan.Email, "Device Loaned", string.Format("You have successfully loaned\nUrl: {0}\nUsername: {1}\nPassword: {2}, Expires: {3}",device.Host,Loan.GeneratedUsername,Loan.GeneratedPassword,DateTime.FromBinary(Loan.ExpireDate).ToString())));
+
 
                 LoanResponse lr = new LoanResponse();
                 lr.DateExpire = DateTime.FromBinary(Loan.ExpireDate).ToString();
@@ -73,7 +91,7 @@ namespace LoanToolIoT.Controllers
         /// </summary>
         /// <param name="Loan">Loan Parameter, Email, Password and Serial number needed.</param>
         /// <returns>Json/XML response to the client</returns>
-        [UriFormat("/return")]
+        [UriFormat("/loan/return")]
         public IPostResponse ReturnCamera([FromContent]ReturnRequest Loan)
         {
             var db = new Database.SqliteDB();
@@ -83,6 +101,8 @@ namespace LoanToolIoT.Controllers
             {
                 return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 1, Message = "Not your camera" });
             }
+            dbdev.Returned = true;
+            dbdev.ExpireDate = 0;
             db.UpdateLoanInfo(dbdev);
             var axisdev = new AxisVapixLib.Device();
             var device = db.GetDevice(new DeviceList { SerialNumber = dbdev.Mac });
@@ -91,10 +111,39 @@ namespace LoanToolIoT.Controllers
                 axisdev.Username = device.Username;
                 axisdev.Password = device.Password;
                 axisdev.Host = device.Host;
-                Task.Run(() => axisdev.FactoryDefault(AxisVapixLib.Device.FactoryDefaultMode.Hard)).Wait();
+                //Task.Run(() => axisdev.FactoryDefault(AxisVapixLib.Device.FactoryDefaultMode.Hard)).Wait();
                 return new PostResponse(PostResponse.ResponseStatus.Created, null, new ResponseData { Code = 0, Message = "Ok" });
             }
             return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 3, Message = "Device could not be found in local database" });      
+        }
+
+        [UriFormat("/current_loans")]
+        public IPostResponse GetCurrentLoans([FromContent]LoanHistoryRequest Request)
+        {
+            var db = new SqliteDB();
+            //TODO: Check for email..
+            var loans = db.GetCurrentLoans();
+
+            if (loans == null || loans.Count == 0)
+                return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 1, Message = "No loans found" });
+
+            var returnList = new List<LoanHistoryRespose>();
+            foreach(var loan in loans)
+            {
+                if (loan.ExpireDate > DateTime.Now.Ticks)
+                {
+                    if (loan.Email == Request.Email)
+                    {
+                        var dev = db.GetDevice(new DeviceList { SerialNumber = loan.Mac });
+
+                        returnList.Add(new LoanHistoryRespose { ExpireDate = DateTime.FromBinary(loan.ExpireDate).ToString(), ExpireDateTick = loan.ExpireDate, SerialNumber = loan.Mac, Username = loan.GeneratedUsername, Password = loan.GeneratedPassword, Host = dev.Host, Model = dev.Model });
+                    }
+                }
+            }
+            if (returnList.Count > 0)
+                return new PostResponse(PostResponse.ResponseStatus.Created, null, returnList);
+            return new PostResponse(PostResponse.ResponseStatus.Conflict, null, new ResponseData { Code = 1, Message = "No loans found" });
+
         }
 
         [UriFormat("/reset")]

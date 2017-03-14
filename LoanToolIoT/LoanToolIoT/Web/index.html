@@ -1,6 +1,368 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html>
+<head>
+    <title>AXIS Virtual Loan Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css?family=Lato:100" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://www.axis.com/partner_pages/adp_virtual_loan_tool/css/app.css">
+    <script src="https://use.fontawesome.com/651cc8bf5c.js"></script>
+</head>
+
 <body>
-    <h1>Running on a Windows Universal device</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="m-t-1 text-xs-center">
+                    <a href="https://www.axis.com/partner_pages/adp_virtual_loan_tool"><img src="https://www.axis.com/partner_pages/adp_virtual_loan_tool/img/axis_logo_color_rgb_130px.png"></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row first-card">
+            <div class="col-lg-12 col-centered">
+
+                <div class="alert alert-info alert-dismissible" id="cookie-message" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <span>
+                        We use cookies to ensure that we give you the best experience on our website. If you continue without changing your settings, we'll assume that you are happy to receive all cookies from this website. If you would like to change your preferences you may do so by following the instructions <a href="http://www.aboutcookies.org/Default.aspx?page=1" class="alert-link">here</a>.
+                    </span>
+                </div>
+
+
+                <!--
+                <div class="alert alert-danger" role="alert">
+                  <span>
+                    <strong>NOTE:</strong> We're currently experiencing problems with our network which might result in borrowed cameras not being accessible. A solution is being worked on.
+                  </span>
+                </div>
+                <div class="alert alert-warning" role="alert">
+                  <span>
+                    <strong>NOTE:</strong> If you get an error message when trying to borrow a device, please try using the url <a href="http://www.axis.com/partner_pages/adp_virtual_loan_tool" class="alert-link">http://www.axis.com/partner_pages/adp_virtual_loan_tool</a> instead.
+                  </span>
+                </div>
+                -->
+                <div class="alert alert-info" role="alert">
+                    <span>
+                        <strong>NOTE:</strong> This site is still under active development. As such we can not guarantee continuous access, or that active loans won't get reset from time to time. Please keep this in mind when using the site.
+                    </span>
+                </div>
+                <div class="alert alert-danger" role="alert">
+                    <span>
+                        <strong>NOTE:</strong> If you need to do a factory reset, or simply change the root password of the device you've borrowed, please use the password <strong>pass</strong>. Otherwise the virtual loan tool will be unable to correctly handle the device when it is returned. This means that the device will be removed from the list of available devices and unavailable for future loans.
+                    </span>
+                </div>
+
+
+                <div class="card hidden-sm-down">
+                    <h3 class="card-header">
+                        AXIS Virtual Loan Tool        <a href="https://www.axis.com/partner_pages/adp_virtual_loan_tool?locale=us"><span class="flag-icon flag-icon-us pull-lg-right"></span></a>
+                    </h3>
+                    <div class="card-block">
+
+                        <h4 class="card-title">Welcome!</h4>
+                        <p class="card-text">
+                            This tool is intended for integration compatibility tests and product tests. Select a product and for how long you want to borrow it. When you click submit you will receive the required login details. When the loan period expires, the product will automatically be reset to factory default settings.
+                        </p>
+                        <h4 class="card-title">Current loans</h4>
+                        <p class="card-text">
+                            If you complete your tests before the loan period expires, we would appreciate it if you return your products manually. Please note that once you return a product, it will automatically be reset to factory default settings.
+                        </p>
+                        <h4 class="card-title">Reservations</h4>
+                        <p class="card-text">
+                            If a device is currently on loan when you need to borrow it, you can create a reservation for it by selecting it under the Unavailable devices heading in the drop down list of devices. When the current loan has expired or has been manually returned, your reservation will activate and you will get an e-mail with your credentials
+                        </p>
+                        <h4 class="card-title">Devices</h4>
+                        <p class="card-text">
+                            To view a complete list of devices in the tool click <a href="https://www.axis.com/partner_pages/adp_virtual_loan_tool/devices">here</a>!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card hidden-md-up">
+                    <h3 class="card-header">AXIS Virtual Loan Tool</h3>
+                    <div class="card-block">
+                        <div class="card-text">
+                            Click <a class="label label-primary label-pill label-size" href="https://www.axis.com/partner_pages/adp_virtual_loan_tool/devices">here</a> to get a list of all devices and their status.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card">
+                    <h3 class="card-header">Borrow device</h3>
+                    <div class="card-block">
+
+
+                        <form name="loan_form" action="https://www.axis.com/partner_pages/adp_virtual_loan_tool/loans" method="POST">
+                            <fieldset class="form-group">
+                                <label for="email">E-mail</label>
+                                <input type="email" class="form-control" name="email" id="email" placeholder="Enter e-mail" value="">
+                            </fieldset>
+                            <fieldset class="form-group">
+                                <label for="devicelist">Device</label>
+                                <select class="form-control" name="device_id" id="device_id">
+                                </select>
+                            </fieldset>
+                            <fieldset class="form-group">
+                                <label for="lease">Duration</label>
+                                <select class="form-control" name="duration" id="duration">
+                                    <option value="1">1 day</option>
+                                    <option value="3">3 days</option>
+                                </select>
+                            </fieldset>
+                            <fieldset class="form-group">
+                                <label for="reason">Reason for loan</label>
+                                <textarea class="form-control" name="reason" id="reason"></textarea>
+                            </fieldset>
+                            <button type="button" id="loanSubmit" class="btn btn-primary hidden-sm-down">Submit</button>
+                            <button type="submit" class="btn btn-primary hidden-md-up btn-block">Submit</button>
+                        </form>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="col-lg-6">
+                <div class="card">
+                    <h3 class="card-header">Your loans</h3>
+                    <div class="card-block">
+
+                        <table class="table nowrap table-striped" id="loanTable" style="display:none">
+                            <thead>
+                                <tr>
+                                    <th>Device</th>
+                                    <th class="text-lg-right">Credentials</th>
+                                    <th class="text-lg-right">Ends at</th>
+                                    <th class="text-lg-right">Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="loanedDevicesTbody">
+                            </tbody>
+                        </table>
+                        <p class="alert alert-info" id="alertBox" style="display:none">
+                            You currently have no loans
+                        </p>
+                        <div id="enterEmailBox" style="display:none">
+                            <label for="check-email">If you can't see your loans, enter your e-mail here.</label>
+                            <form action="#">
+                                <div class="row">
+                                    <div class="col-lg-10">
+                                        <fieldset class="form-group" id="field-check-email">
+                                            <input type="email" class="form-control" name="check-email" id="check-email" placeholder="Enter e-mail" required>
+                                        </fieldset>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <button type="button" class="btn btn-primary btn-block" id="button-check-email">Save</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 text-xs-center m-b-1">
+                <a href="https://www.axis.com/partner_pages/adp_virtual_loan_tool/feedback">Click here to report bugs or to provide feedback</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/vendor.js"></script>
+    <script src="/js/jquery.storageapi.min.js"></script>
+    <script>
+        (function ($) {
+
+            $('#device_id').html("<option disabled value=\"\">Loading device list...</option>");
+            $.ajax({
+                method: 'GET',
+                url: '/api/camera_list',
+                success: function (data) {
+                    var deviceList = "";
+                    $.each(data, function (key, device) {
+                        var listItem = "<option";
+                        listItem += " value=\"" + device["SerialNumber"] + "\">"
+                        listItem += device["Model"]
+                        listItem += "</option>"
+                        deviceList = deviceList + listItem;
+                    })
+                    $('#device_id').html(deviceList);
+
+                }
+                
+            });
+            storage = $.localStorage;
+            email = storage.get('email');
+            $('#email').val(email);
+            if (email != null) {
+                $('#alertBox').html('Loading currently loaned devices');
+                loadCurrentlyLoanedDevices();
+            }
+            else
+            {
+                $('#enterEmailBox').css('display', 'block');
+            }
+
+            $('#button-check-email').click(function () { loadCurrentlyLoanedDevices(); })
+
+            
+
+        $('#loanSubmit').click(function () {
+
+            var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
+            if (!pattern.test($('#email').val()))
+            {
+                alert('Enter a valid email address.');
+                return;
+            }
+            storage.set('email',$('#email').val())
+
+            var obj = { // DeviceLoan
+                SerialNumber: $('#device_id').find(":selected").val(),
+                Reason: $('#reason').val(),
+                Email: $('#email').val(),
+                LoanDays: 1,
+            }
+
+            $('#submit').attr('disabled', true);
+
+            $.ajax({
+                url: "/api/loan/request",
+                method: "POST",
+                data: JSON.stringify(obj),
+                success: function (data)
+                {
+                    //Add to list.
+                    var list = '<tr id="loan-' + obj.Mac + '"><td><a href="' + data["Host"] + '">' + $('#device_id').find(":selected").html() + '</a></td><td class="text-lg-right">' + data["Username"] + '/' + data["Password"] + '</td><td class="text-lg-right">' + data["DateExpire"] + '</td><td class="text-lg-right"><h5 class="m-b-0"><span class="tag tag-success">active</span></h5></td><td><a href="#" onClick="returnDevice(\'' + obj.Mac + '\',\'' + obj.Email + '\',\''+data["Password"]+'\')" title="Return"><i class="fa fa-trash text-danger" aria-hidden="true"></i></a></td></tr>';
+                    var origHtml = $('#loanedDevicesTbody').html();
+                    $('#loanedDevicesTbody').html(origHtml + list);
+                    $('#loanedDevicesTbody').fadeIn(500);
+                    $('#device_id').find(":selected").attr('disabled',true)
+                },
+                fail: function (data) {
+                    alert(data["Message"])
+                },
+                statusCode: {
+                    409: function (data)
+                    {
+                        alert(data.responseJSON["Message"])
+                    }
+
+                },
+                always: function () {
+                    $('#submit').removeAttr("disabled");
+                }
+            });
+
+
+            });
+
+
+
+
+  $("#cookie-message").on('closed.bs.alert', function () {
+    $.ajax({
+      method: 'POST',
+      url: 'https://www.axis.com/partner_pages/adp_virtual_loan_tool/session',
+      data: {
+        key: 'show_cookie_message',
+        value: false
+      }
+    });
+  });
+        })(window.jQuery);
+
+
+        function returnDevice(mac, email, pass)
+        {
+            var obj = { SerialNumber: mac, Email: email, Password: pass };
+            $.ajax({
+                url: "/api/loan/return",
+                method: "POST",
+                data: JSON.stringify(obj),
+                success: function (data) {
+                    if (data["Code"] == 0)
+                        $('#loan-' + mac).fadeOut(1000);
+                },
+
+                fail: function (data) {
+                    alert(data["Message"]);
+                }
+            });
+        }
+        function loadCurrentlyLoanedDevices() {
+            $.ajax({
+                method: "POST",
+                url: "/api/current_loans",
+                data: JSON.stringify({ Email: email }),
+                success: function (data) {
+                    /*
+                    class LoanHistoryRespose
+                    {
+                        public string SerialNumber { get; set; }
+                        public long ExpireDateTick { get; set; }
+                        public string ExpireDate { get; set; }
+                        public string Host { get; set; }
+                        public string Username { get; set; }
+                        public string Password { get; set; }
+                    }
+                    */
+                    var list = "";
+                    $.each(data, function (key, val) {
+
+                        list = list + '<tr id="loan-' + val["SerialNumber"] + '"><td><a href="' + val["Host"] + '">' + val["Model"] + '</a></td><td class="text-lg-right">' + val["Username"] + '/' + val["Password"] + '</td><td class="text-lg-right">' + val["ExpireDate"] + '</td><td class="text-lg-right"><h5 class="m-b-0"><span class="tag tag-success">active</span></h5></td><td><a href="#" onClick="returnDevice(\'' + val["SerialNumber"] + '\',\'' + email + '\',\'' + val["Password"] + '\')" title="Return"><i class="fa fa-trash text-danger" aria-hidden="true"></i></a></td></tr>';
+                    });
+                    $('#loanTable').css('display', 'block');
+                    $('#loanedDevicesTbody').html(list)
+
+                },
+                statusCode: {
+                    409: function (data)
+                    {
+                        console.log(data)
+                        $('#alertBox').html(data.responseJSON["Message"]);
+                        $('#alertBox').css('display', 'block');
+                    }
+                }
+            });
+        }
+
+        
+    </script>
+    <script>
+$(function() {
+  $('#statusbar').fadeOut(7000);
+});
+    </script>
+    <script>
+  $('#button-check-email').click(function () {
+    $.ajax({
+      method: 'POST',
+      url: 'https://www.axis.com/partner_pages/adp_virtual_loan_tool/session',
+      data: {
+        key: 'email',
+        value: $('#check-email').val()
+      }
+    }).done(function () {
+      window.location.href = "https://www.axis.com/partner_pages/adp_virtual_loan_tool"
+    }).fail(function () {
+      $('#field-check-email').addClass('has-danger');
+    });
+  });
+    </script>
 </body>
 </html>

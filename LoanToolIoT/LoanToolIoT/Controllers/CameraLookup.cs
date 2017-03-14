@@ -25,7 +25,14 @@ namespace LoanToolIoT.Controllers
 
             //Start with finding the host list to parse
             Database.SqliteDB db = new Database.SqliteDB();
-            string[] validPassword = { "pass", "adp2013" };
+            //Get current passwords.
+            var validPasswordString = db.GetSetting(new Settings { Name = "validCameraPasswords" });
+            string[] validPassword;
+            if (validPasswordString == null)
+                validPassword = new string[] { "pass", "adp2013" };
+            else
+                validPassword = validPasswordString.Value.Split(new char[] { ',' });
+            validPasswordString = null;
             var hosts = db.GetHostLists();
             /// Value is intered like:
             /// IP Start

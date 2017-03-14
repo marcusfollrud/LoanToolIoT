@@ -21,6 +21,9 @@
     <PackageCertificateKeyFile>LoanToolIoT_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackage>true</AppxPackage>
     <ContainsStartupTask>true</ContainsStartupTask>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>arm</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -98,17 +101,24 @@
   <ItemGroup>
     <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\CameraLookup.cs" />
+    <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\HostController.cs" />
     <Compile Include="Controllers\ListController.cs" />
     <Compile Include="Controllers\LoanController.cs" />
+    <Compile Include="Controllers\SettingsController.cs" />
+    <Compile Include="Cron\CameraReset.cs" />
     <Compile Include="Database\SqliteDB.cs" />
     <Compile Include="Model\Api\AdminRequestModels.cs" />
+    <Compile Include="Model\Api\ApiRequest.cs" />
+    <Compile Include="Model\Api\LoanHistoryRequest.cs" />
     <Compile Include="Model\Api\LoanResponse.cs" />
     <Compile Include="Model\Api\ReturnRequest.cs" />
+    <Compile Include="Model\Api\SettingsRequest.cs" />
     <Compile Include="Model\Sql\DeviceHostList.cs" />
     <Compile Include="Model\Sql\DeviceList.cs" />
     <Compile Include="Model\Sql\DeviceLoan.cs" />
     <Compile Include="Model\Sql\LoanLog.cs" />
+    <Compile Include="Model\Sql\Settings.cs" />
     <Compile Include="Model\Web\CameraList.cs" />
     <Compile Include="Model\Web\ResponseData.cs" />
     <Compile Include="StartupTask.cs" />
@@ -143,7 +153,10 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png">
       <InProject>false</InProject>
     </Content>
+    <Content Include="Web\css\app.css" />
     <Content Include="Web\index.html" />
+    <Content Include="Web\js\jquery.storageapi.min.js" />
+    <Content Include="Web\js\vendor.js" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\..\Documents\Visual Studio 2015\Projects\AxisVapixLib\AxisVapixLib.csproj">
@@ -154,6 +167,9 @@
   <ItemGroup>
     <SDKReference Include="SQLite.UWP.2015, Version=3.16.2">
       <Name>SQLite for Universal Windows Platform</Name>
+    </SDKReference>
+    <SDKReference Include="WindowsIoT, Version=10.0.14393.0">
+      <Name>Windows IoT Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

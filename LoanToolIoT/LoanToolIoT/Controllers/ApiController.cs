@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LoanToolIoT.Controllers
 {
-    public class ApiController
+    public sealed class ApiController
     {
         private string API_KEY = "98955B3577FD4642C68A84913F73E732";
         private string API_SECRET = "ED3C7856E63ED77FA9FF8D8F82B12B8F";

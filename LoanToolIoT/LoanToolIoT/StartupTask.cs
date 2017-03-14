@@ -28,6 +28,7 @@ namespace LoanToolIoT
             restRouteHandler.RegisterController<LoanController>();
 
 
+
             var configuration = new HttpServerConfiguration()
                 .ListenOnPort(8800)
                 .RegisterRoute("api", restRouteHandler)
@@ -37,6 +38,11 @@ namespace LoanToolIoT
 
             var httpServer = new HttpServer(configuration);
             _httpServer = httpServer;
+
+            //Start background cron.
+            var cron = new Cron.CameraReset();
+            cron.StartTasks();
+
 
             await httpServer.StartServerAsync();
         }

@@ -11,7 +11,7 @@ namespace LoanToolIoT.Controllers
     public sealed class ListController
     {
 
-        [UriFormat("/camera_list.json")]
+        [UriFormat("/camera_list")]
         public IGetResponse GetCameraList()
         {
             //Todo: List Cameras from database.
